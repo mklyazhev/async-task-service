@@ -54,10 +54,10 @@ curl -X DELETE "http://localhost:8000/api/v1/tasks/{task_id}"
 ## Тесты
 
 ```bash
-pytest
+uv run pytest
 ```
 
 Интеграционные тесты требуют поднятых PostgreSQL и RabbitMQ и запускаются явно:
 ```bash
-RUN_INTEGRATION=1 pytest -m integration
+RUN_INTEGRATION=1 uv run pytest -m integration
 ```
