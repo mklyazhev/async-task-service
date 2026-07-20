@@ -29,15 +29,23 @@ class TaskRepository:
             filters.append(Task.status == status)
         if priority:
             filters.append(Task.priority == priority)
-        statement = select(Task).where(*filters).order_by(
-            Task.priority.desc(),
-            Task.created_at.desc(),
+        statement = (
+            select(Task)
+            .where(*filters)
+            .order_by(
+                Task.priority.desc(),
+                Task.created_at.desc(),
+            )
         )
         tasks = (
-            await self.session.execute(
-                statement.offset((page - 1) * page_size).limit(page_size),
+            (
+                await self.session.execute(
+                    statement.offset((page - 1) * page_size).limit(page_size),
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         total = await self.session.scalar(
             select(func.count()).select_from(Task).where(*filters),
         )

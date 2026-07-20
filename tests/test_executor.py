@@ -1,7 +1,7 @@
 import pytest
 
-from src.db.models.task import Task
 from src.common.enums import TaskPriority, TaskStatus
+from src.db.models.task import Task
 from src.services.executor import TaskExecutor
 
 

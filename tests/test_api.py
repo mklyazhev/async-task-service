@@ -16,7 +16,11 @@ def test_create_task_returns_accepted() -> None:
     task = type(
         "TaskStub",
         (),
-        {"id": uuid4(), "status": TaskStatus.NEW, "created_at": datetime.now(timezone.utc)},
+        {
+            "id": uuid4(),
+            "status": TaskStatus.NEW,
+            "created_at": datetime.now(timezone.utc),
+        },
     )()
     with patch(
         "src.api.v1.tasks.TaskService.create",

@@ -2,7 +2,9 @@ from faststream.rabbit import ExchangeType, RabbitBroker, RabbitExchange, Rabbit
 
 from src.common.config import get_settings
 
-TASKS_EXCHANGE = RabbitExchange("tasks.exchange", type=ExchangeType.DIRECT, durable=True)
+TASKS_EXCHANGE = RabbitExchange(
+    "tasks.exchange", type=ExchangeType.DIRECT, durable=True
+)
 TASKS_QUEUE = RabbitQueue(
     "tasks.queue",
     durable=True,

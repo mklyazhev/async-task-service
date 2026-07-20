@@ -17,11 +17,12 @@ from src.services.task import (
     get_task_service,
 )
 
-
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.post("", response_model=TaskCreatedResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "", response_model=TaskCreatedResponse, status_code=status.HTTP_202_ACCEPTED
+)
 async def create_task(
     body: TaskCreate,
     task_service: TaskService = Depends(get_task_service),
@@ -53,8 +54,7 @@ async def list_tasks(
 
 @router.get("/{task_id}", response_model=TaskResponse)
 async def get_task(
-    task_id: UUID, 
-    task_service: TaskService = Depends(get_task_service)
+    task_id: UUID, task_service: TaskService = Depends(get_task_service)
 ) -> TaskResponse:
     try:
         return TaskResponse.model_validate(await task_service.get(task_id))
@@ -64,7 +64,7 @@ async def get_task(
 
 @router.get("/{task_id}/status", response_model=TaskStatusResponse)
 async def get_task_status(
-    task_id: UUID, 
+    task_id: UUID,
     task_service: TaskService = Depends(get_task_service),
 ) -> TaskStatusResponse:
     try:
@@ -82,7 +82,7 @@ async def get_task_status(
 
 @router.delete("/{task_id}", response_model=TaskStatusResponse)
 async def cancel_task(
-    task_id: UUID, 
+    task_id: UUID,
     task_service: TaskService = Depends(get_task_service),
 ) -> TaskStatusResponse:
     try:

@@ -19,24 +19,33 @@ async def claim_events() -> list[UUID]:
     now = datetime.now(timezone.utc)
     stale_lock = now - timedelta(minutes=1)
     async with async_session_maker() as session, session.begin():
-        events = (await session.execute(
-            select(OutboxEvent)
-            .where(
-                or_(
-                    OutboxEvent.status.in_([OutboxStatus.NEW, OutboxStatus.RETRY]),
-                    (OutboxEvent.status == OutboxStatus.PROCESSING) & (OutboxEvent.locked_at < stale_lock),
-                ),
+        events = (
+            (
+                await session.execute(
+                    select(OutboxEvent)
+                    .where(
+                        or_(
+                            OutboxEvent.status.in_(
+                                [OutboxStatus.NEW, OutboxStatus.RETRY]
+                            ),
+                            (OutboxEvent.status == OutboxStatus.PROCESSING)
+                            & (OutboxEvent.locked_at < stale_lock),
+                        ),
+                    )
+                    .where(
+                        or_(
+                            OutboxEvent.next_retry_at.is_(None),
+                            OutboxEvent.next_retry_at <= now,
+                        ),
+                    )
+                    .order_by(OutboxEvent.created_at)
+                    .with_for_update(skip_locked=True)
+                    .limit(get_settings().outbox_batch_size)
+                )
             )
-            .where(
-                or_(
-                    OutboxEvent.next_retry_at.is_(None),
-                    OutboxEvent.next_retry_at <= now,
-                ),
-            )
-            .order_by(OutboxEvent.created_at)
-            .with_for_update(skip_locked=True)
-            .limit(get_settings().outbox_batch_size)
-        )).scalars().all()
+            .scalars()
+            .all()
+        )
         for event in events:
             event.status = OutboxStatus.PROCESSING
             event.locked_at = now
@@ -78,7 +87,7 @@ async def publish_event(event_id: UUID) -> None:
                 event.status = OutboxStatus.RETRY
                 event.last_error = str(exc)[:1000]
                 event.next_retry_at = datetime.now(timezone.utc) + timedelta(
-                    seconds=min(60, 2 ** event.attempts),
+                    seconds=min(60, 2**event.attempts),
                 )
         logger.exception("Could not publish outbox event %s", event_id)
 

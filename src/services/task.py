@@ -5,11 +5,11 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.enums import OutboxStatus, TaskPriority, TaskStatus
+from src.db.engine import get_session
 from src.db.models.outbox import OutboxEvent
 from src.db.models.task import Task
 from src.repositories.task import TaskRepository
 from src.schemas.task import TaskCreate
-from src.db.engine import get_session
 
 EVENT_TASK_CREATED = "task.created"
 
@@ -36,7 +36,8 @@ class TaskService:
         )
         self.session.add(task)
         await self.session.flush()
-        self.session.add(OutboxEvent(
+        self.session.add(
+            OutboxEvent(
                 event_type=EVENT_TASK_CREATED,
                 payload={"task_id": str(task.id)},
                 priority=data.priority.rabbit_priority,
