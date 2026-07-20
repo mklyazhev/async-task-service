@@ -34,6 +34,21 @@ curl -X POST http://localhost:8000/api/v1/tasks ^
 curl "http://localhost:8000/api/v1/tasks?status=PENDING&priority=HIGH&page=1&page_size=20"
 ```
 
+Получение задачи:
+```bash
+curl "http://localhost:8000/api/v1/tasks/{task_id}"
+```
+
+Получение статуса задачи:
+```bash
+curl "http://localhost:8000/api/v1/tasks/{task_id}/status"
+```
+
+Отмена задачи:
+```bash
+curl -X DELETE "http://localhost:8000/api/v1/tasks/{task_id}"
+```
+
 Отмена разрешена только в `NEW` и `PENDING`. Для выполняющейся задачи сервис возвращает `409 Conflict`.
 
 ## Тесты
