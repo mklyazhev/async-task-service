@@ -99,3 +99,48 @@ async def test_pending_task_can_be_cancelled() -> None:
         task_response = await client.get(f"/api/v1/tasks/{task_id}")
         assert task_response.status_code == 200
         assert task_response.json()["status"] == "CANCELLED"
+
+
+@pytest.mark.asyncio
+async def test_failed_task_contains_error_message() -> None:
+    async with httpx.AsyncClient(base_url=API_URL, timeout=5) as client:
+        response = await client.post(
+            "/api/v1/tasks",
+            json={
+                "title": f"fail: integration-{uuid4()}",
+                "description": "Verifies the FAILED status and persisted error message.",
+                "priority": "MEDIUM",
+            },
+        )
+        assert response.status_code == 202
+
+        failed_task = await wait_for_status(
+            client,
+            response.json()["id"],
+            "FAILED",
+        )
+        assert failed_task["error_message"] == (
+            "Execution was intentionally failed by task title"
+        )
+        assert failed_task["completed_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_completed_task_cannot_be_cancelled() -> None:
+    async with httpx.AsyncClient(base_url=API_URL, timeout=5) as client:
+        response = await client.post(
+            "/api/v1/tasks",
+            json={
+                "title": f"completed-integration-{uuid4()}",
+                "description": "Verifies cancellation is rejected for a final task state.",
+                "priority": "MEDIUM",
+            },
+        )
+        assert response.status_code == 202
+        task_id = response.json()["id"]
+
+        await wait_for_status(client, task_id, "COMPLETED")
+
+        cancel_response = await client.delete(f"/api/v1/tasks/{task_id}")
+        assert cancel_response.status_code == 409
+        assert "cannot be cancelled" in cancel_response.json()["detail"]
