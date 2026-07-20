@@ -11,7 +11,6 @@
 ```bash
 copy .env.example .env
 docker compose up --build -d
-docker compose exec api alembic upgrade head
 ```
 
 Документация API: http://localhost:8000/docs  

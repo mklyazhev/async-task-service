@@ -100,7 +100,7 @@ async def run() -> None:
                 await publish_event(event_id)
             await asyncio.sleep(get_settings().outbox_poll_interval_seconds)
     finally:
-        await broker.close()
+        await broker.stop()
 
 
 if __name__ == "__main__":

@@ -1,1 +1,1 @@
-Single-database Alembic configuration.
+Generic single-database configuration with an async dbapi.

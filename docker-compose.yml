@@ -23,6 +23,14 @@ services:
       timeout: 5s
       retries: 10
 
+  migrate:
+    build: .
+    command: alembic upgrade head
+    env_file: .env
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: "no"
+
   api:
     build: .
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
@@ -32,6 +40,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       rabbitmq: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
 
   outbox-worker:
     build: .
@@ -41,6 +50,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       rabbitmq: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
 
   consumer:
     build: .
@@ -50,6 +60,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       rabbitmq: {condition: service_healthy}
+      migrate: {condition: service_completed_successfully}
 
 volumes:
   postgres_data:
